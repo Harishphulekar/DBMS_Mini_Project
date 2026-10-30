@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
+import WishlistButton from "./WishlistButton";
 
 export type StoreProduct = {
   id: number;
@@ -157,10 +158,10 @@ export default function ProductFilters({ products }: Props) {
               key={product.id}
               className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
             >
-              <div className="h-44 bg-indigo-50 flex items-center justify-center text-7xl">
+              <div className="relative h-44 bg-indigo-50 flex items-center justify-center text-7xl">
                 {productEmojis[product.id] ?? "🛍️"}
+                <WishlistButton productId={product.id} />
               </div>
-
               <div className="p-5">
                 <p className="text-xs uppercase tracking-wide text-indigo-600 font-semibold">
                   {categoryNames[product.categoryId] ?? "Products"}

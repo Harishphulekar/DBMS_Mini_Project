@@ -4,6 +4,7 @@ import pool from "@/lib/db";
 import AddToCartButton from "./AddToCartButton";
 import CartNavLink from "./CartNavLink";
 import ProductFilters, { type StoreProduct } from "./ProductFilters";
+import WishlistNavLink from "./WishlistNavLink";
 
 type Product = {
   id: number;
@@ -68,8 +69,8 @@ function Storefront() {
             <a href="#features" className="hover:text-indigo-600">
               Features
             </a>
-            <span>♡ Wishlist</span>
-             <CartNavLink />
+            <WishlistNavLink />
+            <CartNavLink />
           </nav>
         </div>
       </header>
