@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+
 type CartItem = {
   cartItemId: number;
   productId: number;
@@ -223,16 +224,15 @@ async function handleRemove(cartItemId: number) {
 
               <div className="border-t mt-5 pt-5 flex justify-between text-lg font-bold">
                 <span>Total</span>
-                <span>{money(cart.total)}</span>
+                <span>{money(cart.total)}</span> 
               </div>
 
-              <button
-                type="button"
-                disabled
-                className="w-full mt-6 rounded-lg bg-indigo-600 text-white py-3 font-semibold opacity-60 cursor-not-allowed"
+              <Link
+                href="/checkout"
+                className="block w-full text-center rounded-lg bg-indigo-600 text-white py-3 font-semibold hover:bg-indigo-700 transition-colors"
               >
-                Checkout — coming soon
-              </button>
+                Proceed to Checkout →
+              </Link>
 
               <p className="text-xs text-gray-500 mt-3 text-center">
                 Shipping and checkout will be added later.

@@ -69,6 +69,9 @@ function Storefront() {
             <a href="#features" className="hover:text-indigo-600">
               Features
             </a>
+            <a href="/purchase-history">
+              Purchase History
+            </a>
             <WishlistNavLink />
             <CartNavLink />
           </nav>
