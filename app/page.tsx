@@ -1,37 +1,16 @@
 
+
 import { Suspense } from "react";
-import pool from "@/lib/db";
-import AddToCartButton from "./AddToCartButton";
-import CartNavLink from "./CartNavLink";
-import ProductFilters, { type StoreProduct } from "./ProductFilters";
-import WishlistNavLink from "./WishlistNavLink";
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
-type Product = {
-  id: number;
-  name: string;
-  description: string;
-  price: number | string;
-  discountPrice: number | string;
-  brand: string;
-  imageUrl: string;
-  categoryId: number;
-};
+import pool from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
-const categoryNames: Record<number, string> = {
-  1: "Electronics",
-  2: "Fashion",
-  3: "Books",
-  4: "Home & Kitchen",
-};
-
-const productEmojis: Record<number, string> = {
-  1: "🎧",
-  2: "📱",
-  3: "👕",
-  4: "📚",
-  5: "☕",
-};
+import CartNavLink from "./CartNavLink";
+import WishlistNavLink from "./WishlistNavLink";
+import ProductFilters, { type StoreProduct } from "./ProductFilters";
+import LogoutButton from "./LogoutButton";
 
 async function ProductCatalog() {
   await connection();
@@ -55,52 +34,70 @@ async function ProductCatalog() {
   return <ProductFilters products={products} />;
 }
 
-
 function Storefront() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
+
+      {/* Navigation */}
       <header className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-4">
+
           <a href="/" className="text-2xl font-bold text-indigo-600">
             IntelliShop
           </a>
-          <nav className="flex gap-5 text-sm font-medium items-center">
+
+          <nav className="flex gap-5 text-sm font-medium items-center flex-wrap">
+
             <a href="#products" className="hover:text-indigo-600">
               Products
             </a>
+
             <a href="#features" className="hover:text-indigo-600">
               Features
             </a>
-            <a href="/purchase-history">
+
+            <a href="/purchase-history" className="hover:text-indigo-600">
               Purchase History
             </a>
+
             <WishlistNavLink />
+
             <CartNavLink />
+
+            <LogoutButton />
+
           </nav>
         </div>
       </header>
 
+      {/* Hero Section */}
       <section className="bg-indigo-700 text-white">
         <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
+
           <p className="text-indigo-200 font-semibold mb-3">
             SMARTER SHOPPING STARTS HERE
           </p>
+
           <h1 className="text-4xl md:text-6xl font-bold max-w-3xl leading-tight">
             Find products that fit your world.
           </h1>
+
           <p className="mt-5 max-w-xl text-indigo-100 text-lg">
             Discover products, intelligent search, and personalized
             recommendations.
           </p>
+
           <a
             href="#products"
             className="inline-block mt-8 bg-white text-indigo-700 px-6 py-3 rounded-lg font-semibold"
           >
             Explore Products
           </a>
+
         </div>
       </section>
 
+      {/* Product Catalogue */}
       <Suspense
         fallback={
           <section className="max-w-7xl mx-auto px-6 py-14">
@@ -111,36 +108,77 @@ function Storefront() {
         <ProductCatalog />
       </Suspense>
 
+      {/* Features */}
       <section id="features" className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-8">
+
           <div>
-            <h3 className="font-bold text-lg">Semantic Search</h3>
+            <h3 className="font-bold text-lg">
+              Semantic Search
+            </h3>
             <p className="text-gray-600 mt-2">
               Find products by meaning, not just exact keywords.
             </p>
           </div>
+
           <div>
-            <h3 className="font-bold text-lg">Personalized Suggestions</h3>
+            <h3 className="font-bold text-lg">
+              Personalized Suggestions
+            </h3>
             <p className="text-gray-600 mt-2">
               Discover products based on your interests and activity.
             </p>
           </div>
+
           <div>
-            <h3 className="font-bold text-lg">Secure Shopping</h3>
+            <h3 className="font-bold text-lg">
+              Secure Shopping
+            </h3>
             <p className="text-gray-600 mt-2">
               Customer accounts, order history, and admin management.
             </p>
           </div>
+
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="text-center text-gray-500 text-sm py-6">
         © 2026 IntelliShop · Intelligent Online Shopping System
       </footer>
+
     </main>
   );
 }
 
-export default function Home() {
+/* Authentication and role-based homepage */
+
+async function HomeContent() {
+  await connection();
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  if (user.role === "ADMIN") {
+    redirect("/admin");
+  }
+
   return <Storefront />;
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading IntelliShop...
+        </div>
+      }
+    >
+      <HomeContent />
+    </Suspense>
+  );
 }
