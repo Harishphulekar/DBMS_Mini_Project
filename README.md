@@ -13,6 +13,7 @@ An intelligent online shopping web application built with Next.js, TypeScript, T
 - Remove items from the cart
 - Live cart item count
 - MySQL database integration
+- a
 
 ## Tech Stack
 
