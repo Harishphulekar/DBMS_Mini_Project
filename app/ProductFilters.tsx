@@ -20,34 +20,51 @@ type Props = {
   products: StoreProduct[];
 };
 
+type SemanticSearchResponse = {
+  success: boolean;
+  message?: string;
+  products: StoreProduct[];
+};
+
 const categories = [
   { id: "all", label: "All Products" },
   { id: "1", label: "Electronics" },
   { id: "2", label: "Fashion" },
-  { id: "3", label: "Books" },
-  { id: "4", label: "Home & Kitchen" },
+  { id: "3", label: "Home & Kitchen" },
+  { id: "4", label: "Books" },
+  { id: "5", label: "Beauty" },
 ];
 
 const categoryNames: Record<number, string> = {
   1: "Electronics",
   2: "Fashion",
-  3: "Books",
-  4: "Home & Kitchen",
+  3: "Home & Kitchen",
+  4: "Books",
+  5: "Beauty",
 };
 
 const productEmojis: Record<number, string> = {
-  1: "🎧",
+  1: "🖱️",
   2: "📱",
   3: "👕",
   4: "📚",
-  5: "☕",
+  5: "💄",
 };
 
 export default function ProductFilters({ products }: Props) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
 
-  // Read a previous search from the URL.
+  // Semantic search states
+  const [semanticProducts, setSemanticProducts] =
+    useState<StoreProduct[] | null>(null);
+
+  const [isSemanticSearching, setIsSemanticSearching] =
+    useState(false);
+
+  const [semanticError, setSemanticError] = useState("");
+
+  // Restore previous search from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const previousSearch = params.get("search");
@@ -57,11 +74,16 @@ export default function ProductFilters({ products }: Props) {
     }
   }, []);
 
+  // Filter keyword or semantic search results
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return products.filter((product) => {
+    const sourceProducts =
+      semanticProducts !== null ? semanticProducts : products;
+
+    return sourceProducts.filter((product) => {
       const matchesSearch =
+        semanticProducts !== null ||
         !query ||
         [
           product.name,
@@ -76,9 +98,9 @@ export default function ProductFilters({ products }: Props) {
 
       return matchesSearch && matchesCategory;
     });
-  }, [products, search, category]);
+  }, [products, search, category, semanticProducts]);
 
-  // Save the search in MySQL when the customer submits it.
+  // Submit search to MySQL history and Qdrant
   async function handleSearchSubmit(
     event: React.FormEvent<HTMLFormElement>
   ) {
@@ -86,26 +108,67 @@ export default function ProductFilters({ products }: Props) {
 
     const queryText = search.trim();
 
-    if (!queryText) return;
+    if (!queryText) {
+      setSemanticProducts(null);
+      setSemanticError("");
+      return;
+    }
+
+    setIsSemanticSearching(true);
+    setSemanticError("");
 
     try {
-      const response = await fetch("/api/search-history", {
+      // Save search history in MySQL
+      try {
+        const historyResponse = await fetch("/api/search-history", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ queryText }),
+        });
+
+        if (!historyResponse.ok) {
+          console.warn("Could not save search history.");
+        }
+      } catch (historyError) {
+        console.error("Search history error:", historyError);
+      }
+
+      // Perform semantic search through Qdrant
+      const response = await fetch("/api/semantic-search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ queryText }),
+        body: JSON.stringify({
+          query: queryText,
+        }),
       });
 
-      const data = await response.json();
+      const data =
+        (await response.json()) as SemanticSearchResponse;
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Unable to save search.");
+        throw new Error(
+          data.message || "Semantic search failed."
+        );
       }
 
-      console.log("Search saved:", queryText);
+      setSemanticProducts(data.products);
+      setSemanticError("");
     } catch (error) {
-      console.error("Search history error:", error);
+      console.error("Semantic search error:", error);
+
+      setSemanticProducts(null);
+
+      setSemanticError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong during semantic search."
+      );
+    } finally {
+      setIsSemanticSearching(false);
     }
   }
 
@@ -116,15 +179,21 @@ export default function ProductFilters({ products }: Props) {
   function clearFilters() {
     setSearch("");
     setCategory("all");
+    setSemanticProducts(null);
+    setSemanticError("");
   }
 
   return (
-    <section id="products" className="max-w-7xl mx-auto px-6 py-14">
+    <section
+      id="products"
+      className="max-w-7xl mx-auto px-6 py-14"
+    >
       <div className="flex flex-wrap justify-between items-end gap-3 mb-8">
         <div>
           <p className="text-sm font-semibold text-indigo-600">
             OUR COLLECTION
           </p>
+
           <h2 className="text-3xl font-bold mt-2">
             Featured Products
           </h2>
@@ -149,8 +218,12 @@ export default function ProductFilters({ products }: Props) {
             <input
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search products, brands, or descriptions..."
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setSemanticProducts(null);
+                setSemanticError("");
+              }}
+              placeholder="Describe what you are looking for..."
               aria-label="Search products"
               className="w-full rounded-xl border border-gray-300 bg-white pl-11 pr-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
             />
@@ -158,9 +231,10 @@ export default function ProductFilters({ products }: Props) {
 
           <button
             type="submit"
-            className="rounded-xl bg-indigo-600 text-white px-5 py-3 font-semibold hover:bg-indigo-700 transition-colors"
+            disabled={isSemanticSearching}
+            className="rounded-xl bg-indigo-600 text-white px-5 py-3 font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-60"
           >
-            Search
+            {isSemanticSearching ? "Searching..." : "Search"}
           </button>
         </form>
 
@@ -172,6 +246,25 @@ export default function ProductFilters({ products }: Props) {
           Clear filters
         </button>
       </div>
+
+      {/* Search status */}
+      {isSemanticSearching && (
+        <p className="text-indigo-600 mb-5">
+          Finding products that match your description...
+        </p>
+      )}
+
+      {semanticError && (
+        <p className="text-red-600 mb-5">
+          {semanticError}
+        </p>
+      )}
+
+      {semanticProducts !== null && !semanticError && (
+        <p className="text-sm text-green-700 mb-5">
+          Showing AI-powered semantic search results.
+        </p>
+      )}
 
       {/* Category filters */}
       <div className="flex gap-2 flex-wrap mb-8">
@@ -222,6 +315,7 @@ export default function ProductFilters({ products }: Props) {
             >
               <div className="relative h-44 bg-indigo-50 flex items-center justify-center text-7xl">
                 {productEmojis[product.id] ?? "🛍️"}
+
                 <WishlistButton productId={product.id} />
               </div>
 
@@ -262,6 +356,10 @@ export default function ProductFilters({ products }: Props) {
   );
 }
 
-function ProductCartButton({ productId }: { productId: number }) {
+function ProductCartButton({
+  productId,
+}: {
+  productId: number;
+}) {
   return <AddToCartButton productId={productId} />;
 }

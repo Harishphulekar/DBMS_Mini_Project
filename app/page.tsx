@@ -5,6 +5,7 @@ import AddToCartButton from "./AddToCartButton";
 import CartNavLink from "./CartNavLink";
 import ProductFilters, { type StoreProduct } from "./ProductFilters";
 import WishlistNavLink from "./WishlistNavLink";
+import { connection } from "next/server";
 
 type Product = {
   id: number;
@@ -32,8 +33,9 @@ const productEmojis: Record<number, string> = {
   5: "☕",
 };
 
-
 async function ProductCatalog() {
+  await connection();
+
   const [rows] = await pool.query(`
     SELECT
       product_id AS id,
