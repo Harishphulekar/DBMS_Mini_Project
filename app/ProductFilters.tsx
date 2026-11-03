@@ -44,10 +44,11 @@ const categoryNames: Record<number, string> = {
   5: "Beauty",
 };
 
+// Product emojis based on category ID
 const productEmojis: Record<number, string> = {
   1: "🖱️",
-  2: "📱",
-  3: "👕",
+  2: "👕",
+  3: "🍳",
   4: "📚",
   5: "💄",
 };
@@ -314,15 +315,21 @@ export default function ProductFilters({ products }: Props) {
               key={product.id}
               className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
             >
-              {/* Clickable original-style emoji illustration */}
+              {/* Emoji product illustration */}
               <div className="relative h-44 bg-indigo-50 flex items-center justify-center">
                 <Link
                   href={`/product/${product.id}`}
                   className="flex h-full w-full items-center justify-center"
                   aria-label={`View ${product.name}`}
                 >
-                  <span className="text-7xl">
-                    {productEmojis[product.id] ?? "🛍️"}
+                  <span
+                    className="text-7xl"
+                    role="img"
+                    aria-label={
+                      categoryNames[product.categoryId] ?? "Product"
+                    }
+                  >
+                    {productEmojis[product.categoryId] ?? "🛍️"}
                   </span>
                 </Link>
 
