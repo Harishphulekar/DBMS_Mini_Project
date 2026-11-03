@@ -326,7 +326,7 @@ export default function ProductFilters({ products }: Props) {
                   </span>
                 </Link>
 
-                {/* Wishlist button remains independent */}
+                {/* Wishlist button */}
                 <WishlistButton productId={product.id} />
               </div>
 
