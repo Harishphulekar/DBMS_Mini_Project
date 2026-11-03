@@ -3,9 +3,9 @@ import { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "IntelliShop - Intelligent Online Shopping",
+  title: "IntelliShop — Curated Intelligent Commerce",
   description:
-    "An intelligent online shopping platform with semantic product search, cart, wishlist and personalized shopping experience.",
+    "An intelligent online shopping platform with vector semantic search, cart, wishlist, and personalized recommendations.",
 };
 
 export default function RootLayout({
@@ -14,8 +14,10 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className="bg-[#F7F5F0]">
+      <body className="min-h-screen bg-[#F7F5F0] text-[#25231F] selection:bg-[#9B8065]/20 selection:text-[#25231F]">
+        {children}
+      </body>
     </html>
   );
 }

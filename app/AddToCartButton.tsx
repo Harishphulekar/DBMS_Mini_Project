@@ -1,14 +1,20 @@
-
 "use client";
 
 import { useState } from "react";
 
 type Props = {
   productId: number;
+  className?: string;
+  variant?: "primary" | "minimal";
 };
 
-export default function AddToCartButton({ productId }: Props) {
+export default function AddToCartButton({
+  productId,
+  className = "",
+  variant = "primary",
+}: Props) {
   const [loading, setLoading] = useState(false);
+  const [added, setAdded] = useState(false);
   const [message, setMessage] = useState("");
 
   async function handleAddToCart() {
@@ -34,8 +40,14 @@ export default function AddToCartButton({ productId }: Props) {
         return;
       }
 
-      setMessage("Added to cart ✓");
+      setAdded(true);
+      setMessage("Added to Bag ✓");
       window.dispatchEvent(new Event("cart-updated"));
+
+      setTimeout(() => {
+        setAdded(false);
+        setMessage("");
+      }, 2500);
     } catch {
       setMessage("Something went wrong. Try again.");
     } finally {
@@ -43,19 +55,59 @@ export default function AddToCartButton({ productId }: Props) {
     }
   }
 
+  const baseStyle =
+    variant === "primary"
+      ? "w-full rounded-full bg-[#25231F] text-[#F7F5F0] py-3 px-5 text-xs font-semibold uppercase tracking-widest hover:bg-[#9B8065] active:scale-[0.99] transition-all duration-200 shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+      : "w-full rounded-full border border-[#25231F] text-[#25231F] py-2.5 px-4 text-xs font-semibold uppercase tracking-wider hover:bg-[#25231F] hover:text-[#F7F5F0] active:scale-[0.99] transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2";
+
   return (
-    <div className="mt-4">
+    <div className="w-full">
       <button
         type="button"
         onClick={handleAddToCart}
         disabled={loading}
-        className="w-full rounded-lg bg-indigo-600 text-white py-2.5 font-semibold hover:bg-indigo-700 disabled:opacity-60"
+        className={`${baseStyle} ${className}`}
       >
-        {loading ? "Adding..." : "Add to Cart"}
+        {loading ? (
+          <span className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            Adding...
+          </span>
+        ) : added ? (
+          <span className="flex items-center gap-1.5 text-[#F7F5F0]">
+            <svg
+              className="w-4 h-4 text-emerald-400 stroke-current"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Added
+          </span>
+        ) : (
+          <span className="flex items-center gap-2">
+            <svg
+              className="w-3.5 h-3.5 stroke-current"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            Add to Bag
+          </span>
+        )}
       </button>
 
-      {message && (
-        <p className="text-sm mt-2 text-center" role="status">
+      {message && !added && (
+        <p className="mt-2 text-center text-xs text-rose-600" role="status">
           {message}
         </p>
       )}

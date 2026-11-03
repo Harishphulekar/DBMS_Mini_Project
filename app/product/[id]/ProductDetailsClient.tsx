@@ -1,10 +1,12 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AddToCartButton from "@/app/AddToCartButton";
 import WishlistButton from "@/app/WishlistButton";
+import ProductImage from "@/app/ProductImage";
+import CartNavLink from "@/app/CartNavLink";
+import WishlistNavLink from "@/app/WishlistNavLink";
 
 type Product = {
   id: number;
@@ -17,14 +19,6 @@ type Product = {
   categoryId: number;
   categoryName: string | null;
   stockQuantity: number;
-};
-
-const productEmojis: Record<number, string> = {
-  1: "🖱️",
-  2: "📱",
-  3: "👕",
-  4: "📚",
-  5: "💄",
 };
 
 export default function ProductDetailsClient({
@@ -61,9 +55,7 @@ export default function ProductDetailsClient({
       } catch (err) {
         if (!cancelled) {
           setError(
-            err instanceof Error
-              ? err.message
-              : "Unable to load product."
+            err instanceof Error ? err.message : "Unable to load product."
           );
         }
       } finally {
@@ -86,143 +78,213 @@ export default function ProductDetailsClient({
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p className="text-lg text-gray-600">
-          Loading product details...
-        </p>
+      <main className="min-h-screen bg-[#F7F5F0] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-[#9B8065] border-t-transparent" />
+          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-[#77736D]">
+            Loading Product Details...
+          </p>
+        </div>
       </main>
     );
   }
 
   if (error || !product) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 className="text-2xl font-bold">Product not found</h1>
-        <p className="mt-3 text-gray-600">{error}</p>
-
-        <Link
-          href="/"
-          className="mt-5 rounded-lg bg-indigo-600 px-5 py-3 text-white"
-        >
-          Back to Store
-        </Link>
+      <main className="min-h-screen bg-[#F7F5F0] flex flex-col items-center justify-center p-6 text-center">
+        <div className="rounded-3xl border border-[#EDE8DF] bg-white p-12 max-w-md shadow-sm">
+          <h1 className="font-editorial text-3xl font-medium text-[#25231F]">
+            Product Not Found
+          </h1>
+          <p className="mt-3 text-xs text-[#77736D] leading-relaxed">
+            {error || "The requested item is currently unavailable in the inventory."}
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#25231F] px-6 py-3 text-xs font-semibold uppercase tracking-widest text-[#F7F5F0] hover:bg-[#9B8065] transition-colors"
+          >
+            ← Back to Storefront
+          </Link>
+        </div>
       </main>
     );
   }
 
   const discount =
     product.price > 0 && product.discountPrice < product.price
-      ? Math.round(
-          ((product.price - product.discountPrice) /
-            product.price) *
-            100
-        )
+      ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
       : 0;
 
-  const productEmoji = productEmojis[product.id] ?? "🛍️";
-
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-5">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-indigo-600">
-            IntelliShop
+    <main className="min-h-screen bg-[#F7F5F0] text-[#25231F]">
+      {/* Editorial Header */}
+      <header className="sticky top-0 z-40 backdrop-blur-md bg-[#F7F5F0]/85 border-b border-[#EDE8DF]">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25231F] text-[#F7F5F0] font-editorial text-lg font-bold group-hover:bg-[#9B8065] transition-colors">
+              I
+            </span>
+            <span className="font-editorial text-2xl font-semibold tracking-wide text-[#25231F]">
+              INTELLISHOP
+            </span>
           </Link>
 
-          <Link href="/" className="text-indigo-600 hover:underline">
-            Back to Products
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="text-xs uppercase tracking-wider font-semibold text-[#77736D] hover:text-[#25231F] transition-colors hidden sm:inline"
+            >
+              ← Back to Collection
+            </Link>
+            <div className="h-4 w-px bg-[#EDE8DF] hidden sm:block" />
+            <WishlistNavLink />
+            <CartNavLink />
+          </div>
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Original-style emoji product illustration */}
-          <div className="relative rounded-2xl bg-indigo-50 border border-gray-200 min-h-[350px] flex items-center justify-center p-8">
-            <div className="text-9xl" role="img" aria-label={product.name}>
-              {productEmoji}
-            </div>
+      {/* Breadcrumbs */}
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
+        <nav className="flex items-center gap-2 text-xs text-[#77736D]">
+          <Link href="/" className="hover:text-[#25231F] transition-colors">
+            Home
+          </Link>
+          <span>/</span>
+          <span className="text-[#80664E] font-medium">
+            {product.categoryName || "Product"}
+          </span>
+          <span>/</span>
+          <span className="text-[#25231F] truncate max-w-[200px]">{product.name}</span>
+        </nav>
+      </div>
 
-            <div className="absolute right-4 top-4">
+      {/* Main Product Showcase Section */}
+      <section className="max-w-7xl mx-auto px-6 py-8 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          {/* Left Column: Product Photography Display */}
+          <div className="lg:col-span-7">
+            <div className="relative rounded-3xl overflow-hidden border border-[#EDE8DF] bg-white shadow-sm aspect-[4/5] sm:aspect-square group">
+              <ProductImage
+                productId={product.id}
+                imageUrl={product.imageUrl}
+                name={product.name}
+                categoryId={product.categoryId}
+                fit="contain"
+              />
+
+              {/* Floating Wishlist Control */}
               <WishlistButton productId={product.id} />
+
+              {/* Floating Discount Pill */}
+              {discount > 0 && (
+                <div className="absolute left-6 top-6 z-10 rounded-full bg-[#25231F]/90 backdrop-blur-md px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#F7F5F0]">
+                  Save {discount}%
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Product information */}
-          <div className="flex flex-col">
-            <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
-              {product.categoryName || "IntelliShop Product"}
-            </p>
+          {/* Right Column: Product Intelligence & Buying Panel */}
+          <div className="lg:col-span-5 flex flex-col space-y-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#9B8065]" />
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B8065]">
+                  {product.categoryName || "Curated Edition"}
+                </p>
+              </div>
 
-            <h1 className="mt-3 text-3xl md:text-4xl font-bold text-gray-900">
-              {product.name}
-            </h1>
+              <h1 className="mt-3 font-editorial text-3xl sm:text-4xl lg:text-5xl font-medium text-[#25231F] leading-tight">
+                {product.name}
+              </h1>
 
-            {product.brand && (
-              <p className="mt-3 text-gray-500">
-                Brand: {product.brand}
-              </p>
-            )}
-
-            <div className="mt-7 flex items-center gap-3 flex-wrap">
-              <span className="text-3xl font-bold text-gray-900">
-                ₹{formatPrice(product.discountPrice)}
-              </span>
-
-              {discount > 0 && (
-                <>
-                  <span className="text-lg text-gray-400 line-through">
-                    ₹{formatPrice(product.price)}
-                  </span>
-
-                  <span className="rounded-md bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                    {discount}% OFF
-                  </span>
-                </>
+              {product.brand && (
+                <p className="mt-2 text-xs uppercase tracking-wider text-[#77736D] font-medium">
+                  By {product.brand}
+                </p>
               )}
             </div>
 
-            {/* Stock information */}
-            <div className="mt-7">
-              {product.stockQuantity > 0 ? (
-                <p className="font-semibold text-green-700">
-                  ✓ In Stock ({product.stockQuantity} available)
-                </p>
-              ) : (
-                <p className="font-semibold text-red-600">
-                  Currently Out of Stock
-                </p>
-              )}
+            {/* Price Presentation */}
+            <div className="p-6 rounded-2xl bg-white border border-[#EDE8DF] space-y-3">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span className="font-editorial text-3xl sm:text-4xl font-semibold text-[#25231F]">
+                  ₹{formatPrice(product.discountPrice)}
+                </span>
+
+                {discount > 0 && (
+                  <>
+                    <span className="text-sm text-[#A5A19B] line-through">
+                      ₹{formatPrice(product.price)}
+                    </span>
+                    <span className="rounded-full bg-[#EDE8DF] px-2.5 py-0.5 text-[10px] font-bold text-[#80664E] uppercase tracking-wider">
+                      {discount}% OFF
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Stock Status Pill */}
+              <div className="pt-2">
+                {product.stockQuantity > 0 ? (
+                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-medium text-emerald-800">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                    <span>In Stock · {product.stockQuantity} available for delivery</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
+                    <span>Currently Out of Stock</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Description */}
-            <div className="mt-8 border-t border-gray-200 pt-6">
-              <h2 className="text-xl font-bold">
-                Product Description
+            <div className="space-y-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-[#25231F]">
+                Product Overview
               </h2>
-
-              <p className="mt-3 leading-7 text-gray-600 whitespace-pre-line">
-                {product.description || "No description available."}
+              <p className="text-sm leading-relaxed text-[#77736D] whitespace-pre-line bg-white/60 p-5 rounded-2xl border border-[#EDE8DF]">
+                {product.description || "No specific details provided for this curation."}
               </p>
             </div>
 
-            {/* Add to Cart */}
-            <div className="mt-8">
+            {/* Add to Bag Action */}
+            <div className="pt-2">
               {product.stockQuantity > 0 ? (
-                <AddToCartButton productId={product.id} />
+                <AddToCartButton productId={product.id} className="py-4 text-sm" />
               ) : (
                 <button
                   disabled
-                  className="w-full rounded-lg bg-gray-300 py-3 font-semibold text-gray-600"
+                  className="w-full rounded-full bg-[#EDE8DF] py-4 text-xs font-semibold uppercase tracking-widest text-[#77736D] cursor-not-allowed"
                 >
-                  Out of Stock
+                  Sold Out
                 </button>
               )}
             </div>
 
-            <p className="mt-5 text-sm text-gray-500">
-              Product ID: {product.id}
-            </p>
+            {/* Trust & Database Feature Notes */}
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#EDE8DF]">
+              <div className="flex items-start gap-2.5">
+                <span className="text-[#9B8065] text-sm mt-0.5">✓</span>
+                <div>
+                  <p className="text-xs font-semibold text-[#25231F]">ACID Guaranteed</p>
+                  <p className="text-[10px] text-[#77736D]">Atomic MySQL checkout lock</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="text-[#9B8065] text-sm mt-0.5">✓</span>
+                <div>
+                  <p className="text-xs font-semibold text-[#25231F]">Vector Indexed</p>
+                  <p className="text-[10px] text-[#77736D]">Cosine similarity matched</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-[#A5A19B] text-center pt-2">
+              Product Reference ID: #{product.id}
+            </div>
           </div>
         </div>
       </section>

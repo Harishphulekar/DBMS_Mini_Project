@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -52,136 +51,163 @@ export default function CheckoutPage() {
     loadCart();
   }, []);
 
-  const formatPrice = (price: number) =>
-    `₹${price.toLocaleString("en-IN")}`;
+  const formatPrice = (price: number) => `₹${price.toLocaleString("en-IN")}`;
 
-  
-async function handlePlaceOrder() {
-  setError("");
+  async function handlePlaceOrder() {
+    setError("");
 
-  if (!fullName.trim() || !address.trim() || !/^[0-9]{10}$/.test(phone)) {
-    setError("Please enter valid delivery details.");
-    return;
-  }
-
-  setSubmitting(true);
-
-  try {
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fullName,
-        address,
-        phone,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      setError(data.message || "Unable to place your order.");
+    if (!fullName.trim() || !address.trim() || !/^[0-9]{10}$/.test(phone)) {
+      setError("Please provide a valid full name, complete address, and a 10-digit phone number.");
       return;
     }
 
-    router.push(`/order-confirmation/${data.orderId}`);
-  } catch (error) {
-    console.error("Order submission error:", error);
-    setError("Something went wrong. Please try again.");
-  } finally {
-    setSubmitting(false);
-  }
-}
+    setSubmitting(true);
 
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          address,
+          phone,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.message || "Unable to place your order.");
+        return;
+      }
+
+      router.push(`/order-confirmation/${data.orderId}`);
+    } catch (error) {
+      console.error("Order submission error:", error);
+      setError("Something went wrong while placing your order. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        Loading checkout...
+      <main className="min-h-screen bg-[#F7F5F0] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-[#9B8065] border-t-transparent" />
+          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-[#77736D]">
+            Preparing Checkout...
+          </p>
+        </div>
       </main>
     );
   }
 
   if (items.length === 0) {
     return (
-      <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
-        <p className="text-6xl mb-4">🛒</p>
-        <h1 className="text-2xl font-bold">Your cart is empty</h1>
-        <p className="text-gray-500 mt-2">
-          Add some products before proceeding to checkout.
-        </p>
-        <Link
-          href="/"
-          className="mt-6 bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold"
-        >
-          Continue Shopping
-        </Link>
+      <main className="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-6 text-center">
+        <div className="rounded-3xl border border-[#EDE8DF] bg-white p-12 max-w-md shadow-sm">
+          <p className="font-editorial text-2xl font-medium text-[#25231F]">
+            Your Bag is Empty
+          </p>
+          <p className="mt-2 text-xs text-[#77736D]">
+            Add items to your bag before proceeding to checkout.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-flex rounded-full bg-[#25231F] px-8 py-3 text-xs font-semibold uppercase tracking-widest text-white hover:bg-[#9B8065] transition-colors"
+          >
+            Browse Collection
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-indigo-600">
-            IntelliShop
+    <main className="min-h-screen bg-[#F7F5F0] text-[#25231F]">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-40 backdrop-blur-md bg-[#F7F5F0]/85 border-b border-[#EDE8DF]">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25231F] text-[#F7F5F0] font-editorial text-lg font-bold group-hover:bg-[#9B8065] transition-colors">
+              I
+            </span>
+            <span className="font-editorial text-2xl font-semibold tracking-wide text-[#25231F]">
+              INTELLISHOP
+            </span>
           </Link>
-          <Link href="/cart" className="text-sm font-medium hover:text-indigo-600">
-            ← Back to Cart
+
+          <Link
+            href="/cart"
+            className="text-xs font-semibold uppercase tracking-wider text-[#77736D] hover:text-[#25231F] transition-colors"
+          >
+            ← Return to Bag
           </Link>
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <p className="text-sm font-semibold text-indigo-600">
-          ALMOST THERE!
-        </p>
-        <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-8">
-          Checkout
-        </h1>
+      {/* Checkout Form Section */}
+      <section className="max-w-6xl mx-auto px-6 py-12 md:py-16">
+        <div className="pb-8 border-b border-[#EDE8DF]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B8065]">
+            Final Step
+          </p>
+          <h1 className="mt-1 font-editorial text-4xl sm:text-5xl font-medium text-[#25231F]">
+            Secure Checkout
+          </h1>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mt-10 items-start">
+          {/* Form Side */}
           <form
-            className="lg:col-span-2 bg-white border rounded-2xl p-6 md:p-8 space-y-5"
+            className="lg:col-span-7 rounded-3xl bg-white border border-[#EDE8DF] p-8 md:p-10 shadow-sm space-y-6"
             onSubmit={(event) => {
-                        event.preventDefault();
-                        void handlePlaceOrder();
-                        }}>
-            <h2 className="text-xl font-bold">Delivery Information</h2>
+              event.preventDefault();
+              void handlePlaceOrder();
+            }}
+          >
+            <div>
+              <h2 className="font-editorial text-2xl font-medium text-[#25231F]">
+                Delivery Information
+              </h2>
+              <p className="text-xs text-[#77736D] mt-1">
+                Provide the shipping address for physical delivery.
+              </p>
+            </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">
-                Full Name
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#25231F] mb-2">
+                Full Recipient Name *
               </label>
               <input
                 required
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
-                placeholder="Enter your full name"
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500"
+                placeholder="e.g. John Doe"
+                className="w-full rounded-xl border border-[#EDE8DF] bg-[#F7F5F0]/30 px-4 py-3.5 text-sm text-[#25231F] placeholder-[#A5A19B] transition-all focus:bg-white"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">
-                Delivery Address
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#25231F] mb-2">
+                Delivery Address *
               </label>
               <textarea
                 required
                 value={address}
                 onChange={(event) => setAddress(event.target.value)}
-                placeholder="House number, street, area, city, state and PIN code"
+                placeholder="Apartment, building, street address, city, state, and postal PIN code"
                 rows={4}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500"
+                className="w-full rounded-xl border border-[#EDE8DF] bg-[#F7F5F0]/30 px-4 py-3.5 text-sm text-[#25231F] placeholder-[#A5A19B] transition-all focus:bg-white"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">
-                Phone Number
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#25231F] mb-2">
+                10-Digit Phone Number *
               </label>
               <input
                 required
@@ -191,79 +217,88 @@ async function handlePlaceOrder() {
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="10-digit mobile number"
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500"
+                className="w-full rounded-xl border border-[#EDE8DF] bg-[#F7F5F0]/30 px-4 py-3.5 text-sm text-[#25231F] placeholder-[#A5A19B] transition-all focus:bg-white"
               />
             </div>
 
-            <div className="border rounded-xl p-4 bg-indigo-50">
-              <p className="font-semibold">Payment Method</p>
-              <p className="text-sm text-gray-600 mt-1">
-                Cash on Delivery (COD)
+            {/* Payment Method Presentation */}
+            <div className="rounded-2xl border border-[#EDE8DF] bg-[#F7F5F0]/50 p-5 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#25231F]">
+                  Payment Method
+                </span>
+                <span className="rounded-full bg-[#EDE8DF] px-2.5 py-0.5 text-[10px] font-bold text-[#80664E] uppercase tracking-wider">
+                  Verified COD
+                </span>
+              </div>
+              <p className="text-sm font-medium text-[#25231F]">
+                Cash on Delivery (Doorstep Payment)
               </p>
-              <p className="text-xs text-gray-500 mt-2">
-                Pay when your order is delivered.
+              <p className="text-xs text-[#77736D]">
+                Pay conveniently in cash or UPI when your order is delivered to your address.
               </p>
             </div>
 
-            <button
-            type="submit"
-            disabled={submitting || items.length === 0}
-            className="w-full rounded-lg bg-indigo-600 text-white py-3 font-semibold hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
-            >
-            {submitting ? "Placing Order..." : "Place Order"}
-            </button>
             {error && (
-            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+              <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-700">
                 {error}
-            </p>
+              </div>
             )}
+
+            <button
+              type="submit"
+              disabled={submitting || items.length === 0}
+              className="w-full rounded-full bg-[#25231F] py-4 text-xs font-semibold uppercase tracking-widest text-[#F7F5F0] hover:bg-[#9B8065] active:scale-[0.99] transition-all duration-200 shadow-md disabled:opacity-50"
+            >
+              {submitting ? "Placing Order..." : "Confirm & Place Order"}
+            </button>
           </form>
 
-          <aside className="bg-white border rounded-2xl p-6 h-fit">
-            <h2 className="text-xl font-bold mb-5">Order Summary</h2>
+          {/* Right Summary */}
+          <aside className="lg:col-span-5 rounded-3xl bg-white border border-[#EDE8DF] p-8 shadow-sm lg:sticky lg:top-28">
+            <h2 className="font-editorial text-2xl font-medium text-[#25231F]">
+              Review Items ({items.length})
+            </h2>
 
-            <div className="space-y-4">
+            <div className="mt-6 divide-y divide-[#EDE8DF]/60 max-h-72 overflow-y-auto pr-1">
               {items.map((item) => (
-                <div
-                  key={item.cartItemId}
-                  className="flex justify-between gap-3 text-sm"
-                >
+                <div key={item.cartItemId} className="py-3.5 flex justify-between items-start gap-4 text-xs">
                   <div>
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-gray-500">
-                      Qty: {item.quantity}
+                    <p className="font-medium text-[#25231F]">{item.name}</p>
+                    <p className="text-[#77736D] mt-0.5">
+                      Qty: {item.quantity} · {item.brand}
                     </p>
                   </div>
-
-                  <p className="font-semibold whitespace-nowrap">
+                  <p className="font-semibold text-[#25231F] whitespace-nowrap">
                     {formatPrice(Number(item.lineTotal))}
                   </p>
                 </div>
               ))}
             </div>
 
-            <div className="border-t mt-5 pt-5 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Subtotal</span>
-                <span>{formatPrice(total)}</span>
+            <div className="border-t border-[#EDE8DF] mt-6 pt-5 space-y-3 text-xs">
+              <div className="flex justify-between text-[#77736D]">
+                <span>Subtotal</span>
+                <span className="font-semibold text-[#25231F]">{formatPrice(total)}</span>
               </div>
-
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Delivery</span>
-                <span className="text-green-600">Free</span>
+              <div className="flex justify-between text-[#77736D]">
+                <span>Delivery</span>
+                <span className="font-semibold text-emerald-700">Complimentary</span>
               </div>
-
-              <div className="border-t pt-4 flex justify-between items-center">
-                <span className="font-bold">Total</span>
-                <span className="text-2xl font-bold text-indigo-600">
+              <div className="border-t border-[#EDE8DF] pt-4 flex justify-between items-baseline">
+                <span className="text-sm font-semibold uppercase tracking-wider text-[#25231F]">
+                  Order Total
+                </span>
+                <span className="font-editorial text-3xl font-semibold text-[#25231F]">
                   {formatPrice(total)}
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-gray-500 mt-5">
-              Final price and stock availability will be verified when you place your order.
-            </p>
+            <div className="mt-6 pt-5 border-t border-[#EDE8DF] text-[11px] text-[#77736D] leading-relaxed">
+              Order submission executes a MySQL transaction that reserves stock atomically and
+              creates relational invoice records.
+            </div>
           </aside>
         </div>
       </section>

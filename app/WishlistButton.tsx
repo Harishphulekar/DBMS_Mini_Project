@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -99,11 +98,19 @@ export default function WishlistButton({ productId }: Props) {
       aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
       aria-pressed={saved}
       title={saved ? "Remove from wishlist" : "Add to wishlist"}
-      className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow hover:scale-105 transition disabled:opacity-50"
+      className="absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-md shadow-sm border border-[#EDE8DF]/60 text-[#25231F] hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50"
     >
-      <span className={saved ? "text-red-500 text-2xl" : "text-gray-500 text-2xl"}>
-        {saved ? "♥" : "♡"}
-      </span>
+      <svg
+        className={`w-4 h-4 transition-colors duration-200 ${
+          saved ? "fill-[#80664E] stroke-[#80664E]" : "fill-none stroke-[#77736D] hover:stroke-[#25231F]"
+        }`}
+        viewBox="0 0 24 24"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
     </button>
   );
 }
