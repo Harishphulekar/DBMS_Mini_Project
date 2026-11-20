@@ -1,11 +1,13 @@
 
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
-
-const CUSTOMER_ID = 1; // Temporary development customer
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
+
     const [rows]: any = await pool.execute(
       `SELECT
          wi.wishlist_item_id AS wishlistItemId,
@@ -23,7 +25,7 @@ export async function GET() {
        JOIN product p ON p.product_id = wi.product_id
        WHERE w.customer_id = ?
        ORDER BY wi.created_at DESC`,
-      [CUSTOMER_ID]
+      [customerId]
     );
 
     return NextResponse.json({
@@ -43,6 +45,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
+
     const body = await request.json();
     const productId = Number(body.productId);
 
@@ -67,7 +72,7 @@ export async function POST(request: Request) {
 
     const [wishlists]: any = await pool.execute(
       "SELECT wishlist_id FROM wishlist WHERE customer_id = ? LIMIT 1",
-      [CUSTOMER_ID]
+      [customerId]
     );
 
     let wishlistId: number;
@@ -77,7 +82,7 @@ export async function POST(request: Request) {
     } else {
       const [result]: any = await pool.execute(
         "INSERT INTO wishlist (customer_id) VALUES (?)",
-        [CUSTOMER_ID]
+        [customerId]
       );
 
       wishlistId = Number(result.insertId);
@@ -119,6 +124,9 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
+
     const body = await request.json();
     const wishlistItemId = Number(body.wishlistItemId);
 
@@ -135,7 +143,7 @@ export async function DELETE(request: Request) {
        JOIN wishlist w ON w.wishlist_id = wi.wishlist_id
        WHERE wi.wishlist_item_id = ?
          AND w.customer_id = ?`,
-      [wishlistItemId, CUSTOMER_ID]
+      [wishlistItemId, customerId]
     );
 
     if (result.affectedRows === 0) {

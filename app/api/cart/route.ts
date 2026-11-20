@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -21,9 +22,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Temporary development customer.
-    // Replace this with the authenticated customer's ID later.
-    const customerId = 1;
+    // Dynamic authenticated customer identification with guest/demo fallback
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
 
     const connection = await pool.getConnection();
 

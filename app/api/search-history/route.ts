@@ -1,12 +1,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
-
-const CUSTOMER_ID = 1; // Temporary demo customer
+import { getCurrentUser } from "@/lib/auth";
 
 // Save a search
 export async function POST(request: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
+
     const body = await request.json();
     const queryText = body.queryText?.trim();
 
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
     await pool.execute(
       `INSERT INTO search_history (customer_id, query_text)
        VALUES (?, ?)`,
-      [CUSTOMER_ID, queryText]
+      [customerId, queryText]
     );
 
     return NextResponse.json({
@@ -47,6 +49,9 @@ export async function POST(request: NextRequest) {
 // Retrieve search history
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
+
     const [rows] = await pool.execute(
       `SELECT
          search_id AS searchId,
@@ -55,7 +60,7 @@ export async function GET() {
        FROM search_history
        WHERE customer_id = ?
        ORDER BY searched_at DESC, search_id DESC`,
-      [CUSTOMER_ID]
+      [customerId]
     );
 
     return NextResponse.json({

@@ -1,13 +1,16 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
-
-const CUSTOMER_ID = 1; // Current demo customer
+import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   let connection;
 
   try {
+    // Authenticated customer identification with guest/demo fallback
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
+
     const body = await request.json();
 
     const fullName = String(body.fullName ?? "").trim();
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
        WHERE customer_id = ?
        LIMIT 1
        FOR UPDATE`,
-      [CUSTOMER_ID]
+      [customerId]
     );
 
     if (cartRows.length === 0) {
@@ -108,7 +111,7 @@ export async function POST(request: NextRequest) {
       `INSERT INTO orders
          (customer_id, status, total_amount, shipping_address)
        VALUES (?, 'PENDING', ?, ?)`,
-      [CUSTOMER_ID, totalAmount.toFixed(2), shippingAddress]
+      [customerId, totalAmount.toFixed(2), shippingAddress]
     );
 
     const orderId = orderResult.insertId;

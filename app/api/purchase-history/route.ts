@@ -1,11 +1,13 @@
 
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
-
-const CUSTOMER_ID = 1; // Current demo customer
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
+
     const [rows]: any = await pool.execute(
       `SELECT
          ph.order_id AS orderId,
@@ -24,7 +26,7 @@ export async function GET() {
          ON p.product_id = ph.product_id
        WHERE ph.customer_id = ?
        ORDER BY ph.purchase_date DESC, ph.order_id DESC`,
-      [CUSTOMER_ID]
+      [customerId]
     );
 
     return NextResponse.json({

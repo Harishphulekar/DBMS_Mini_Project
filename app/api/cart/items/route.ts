@@ -1,11 +1,12 @@
 
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
   try {
-    // Temporary development customer
-    const customerId = 1;
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
 
     const [rows]: any = await pool.execute(
       `SELECT
@@ -71,8 +72,8 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Temporary development customer
-    const customerId = 1;
+    const user = await getCurrentUser();
+    const customerId = user ? user.userId : 1;
 
     const [result]: any = await pool.execute(
       `DELETE ci
